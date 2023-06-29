@@ -1,4 +1,5 @@
 from enum import Enum
+import time
 from projectile_motion import GroundToGround
 import pygame
 
@@ -11,9 +12,9 @@ class Color(Enum):
 
 pygame.init()
 
-WIDTH, HEIGHT = 1000, 800
-SCALEX, SCALEY = WIDTH, HEIGHT
-FRAMERATE = 30
+WIDTH, HEIGHT = 1200, 650
+SCALEX = SCALEY = 1
+FRAMERATE = 60
 BALL_RADIUS = 20
 
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -35,7 +36,7 @@ class Simulator:
 
     @staticmethod
     def scale_coordinate(coordinate: tuple[int, int]):
-        return (coordinate[0] + WIDTH / 10, (HEIGHT / 2) - coordinate[1])
+        return (coordinate[0] * SCALEX, HEIGHT - (coordinate[1] * SCALEY))
 
     def draw(self, window) -> bool:
         try:
@@ -59,8 +60,13 @@ class Simulator:
 def main():
     running = True
     clock = pygame.time.Clock()
-    sim = Simulator(100, 60, -1)
+    sim = Simulator(300, 3, 15)
+    global SCALEX, SCALEY
+    SCALEX = WIDTH / sim.engine.range
+    SCALEY = HEIGHT / sim.engine.hmax
+    print(sim.engine.time_of_flight)
 
+    init = time.perf_counter()
     while running:
         clock.tick(FRAMERATE)
         WINDOW.fill(Color.BLACK.value)
@@ -74,6 +80,8 @@ def main():
             running = False
         pygame.display.update()
 
+    finish = time.perf_counter()
+    print(finish - init)
     pygame.quit()
 
 

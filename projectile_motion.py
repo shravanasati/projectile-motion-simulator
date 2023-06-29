@@ -53,7 +53,10 @@ class GroundToGround:
         """
         coordinates_list = []
         for t in np.arange(0.0, self.time_of_flight, timestep):
-            coordinates_list.append(self.coordinates(t))
+            c = self.coordinates(t)
+            if c[0] < 0 or c[1] < 0:
+                break
+            coordinates_list.append(c)
 
         return coordinates_list
 
