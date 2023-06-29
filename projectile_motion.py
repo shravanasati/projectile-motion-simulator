@@ -1,5 +1,6 @@
 from enum import Enum
 import math
+import numpy as np
 
 
 class Constant(Enum):
@@ -11,7 +12,7 @@ class GroundToGround:
         self,
         initial_velocity: float,
         angle_of_projection: float,
-        horizontal_acceleration: float = 0,
+        horizontal_acceleration: float,
     ) -> None:
         """
         Angle of projection must be in degrees.
@@ -33,15 +34,32 @@ class GroundToGround:
 
     @property
     def range(self) -> float:
-        return (self.ux * self.time_of_flight) + (0.5 * self.ax * (self.time_of_flight**2))
+        return (self.ux * self.time_of_flight) + (
+            0.5 * self.ax * (self.time_of_flight**2)
+        )
 
     @property
     def hmax(self) -> float:
         return (self.uy**2) / (2 * Constant.g.value)
 
+    def coordinates(self, t: float):
+        x = (self.ux * t) + (0.5 * self.ax * (t**2))
+        y = (self.uy * t) + (0.5 * self.ay * (t**2))
+        return x, y
+
+    def trajectory(self, timestep: float) -> list[tuple[int, int]]:
+        """
+        Timestep should be in seconds, it represents 1/framerate.
+        """
+        coordinates_list = []
+        for t in np.arange(0.0, self.time_of_flight, timestep):
+            coordinates_list.append(self.coordinates(t))
+
+        return coordinates_list
+
 
 if __name__ == "__main__":
-    g2g = GroundToGround(40, 50)
+    g2g = GroundToGround(40, 50, 0)
     print(g2g.range)
     print(g2g.hmax)
     print(g2g.time_of_flight)
