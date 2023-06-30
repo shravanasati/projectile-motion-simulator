@@ -13,6 +13,7 @@ class GroundToGround:
         initial_velocity: float,
         angle_of_projection: float,
         horizontal_acceleration: float,
+        vertical_acceleration: float = -Constant.g.value
     ) -> None:
         """
         Angle of projection must be in degrees.
@@ -25,7 +26,7 @@ class GroundToGround:
         self.uy = initial_velocity * math.sin(self.theta)
 
         # acceleration due to gravity
-        self.ay = -(Constant.g.value)
+        self.ay = -abs(vertical_acceleration)
         self.ax = horizontal_acceleration
 
     @property
@@ -62,7 +63,8 @@ class GroundToGround:
 
 
 if __name__ == "__main__":
-    g2g = GroundToGround(40, 50, 0)
+    g2g = GroundToGround(40, 3, 0)
+    print(g2g.theta)
     print(g2g.range)
     print(g2g.hmax)
     print(g2g.time_of_flight)

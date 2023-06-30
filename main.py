@@ -30,21 +30,31 @@ class Simulator:
         initial_velocity: float,
         angle_of_projection: float,
         horizontal_acceleration: float,
-        show_text: bool,
+        vertical_acceleration: float,
+        show_pos: bool = False,
+        show_info: bool = False,
     ) -> None:
         self.engine = GroundToGround(
-            initial_velocity, angle_of_projection, horizontal_acceleration
+            initial_velocity,
+            angle_of_projection,
+            horizontal_acceleration,
+            vertical_acceleration,
         )
-        self.show_text = show_text
+        self.show_pos = show_pos
+        self.show_info = show_info
 
         self.pos = 0
         self.trajectory = self.engine.trajectory(1 / FRAMERATE)
 
-    def show_info(self, window):
+    def show_info_text(self, window):
         time_text = FONT.render(
-            f"Time of Flight: {round(self.engine.time_of_flight, 2)}s", 1, Color.BLUE.value
+            f"Time of Flight: {round(self.engine.time_of_flight, 2)}s",
+            1,
+            Color.BLUE.value,
         )
-        range_text = FONT.render(f"Range: {round(self.engine.range, 2)}m", 1, Color.BLUE.value)
+        range_text = FONT.render(
+            f"Range: {round(self.engine.range, 2)}m", 1, Color.BLUE.value
+        )
         hmax_text = FONT.render(
             f"Maximum Height: {round(self.engine.hmax, 2)}m", 1, Color.BLUE.value
         )
@@ -76,10 +86,11 @@ class Simulator:
                     2,
                 )
 
-            if not self.show_text:
-                return False
+            if self.show_info:
+                self.show_info_text(window)
 
-            self.show_info(window)
+            if not self.show_pos:
+                return False
 
             # draw distance and height
             height_text = FONT.render(
@@ -97,14 +108,23 @@ class Simulator:
             return True
 
 
+# todo fix bug when range is not equal to max distance covered when negative acceleration
+# is used
+
+
 def main():
     running = True
     clock = pygame.time.Clock()
-    sim = Simulator(300, 30, 0, show_text=True)
+    sim1 = Simulator(50, 60, -0.5, 12, show_pos=True)
+    sim2 = Simulator(70, 30, 0, 10, show_pos=True)
+    sims = {sim1: False, sim2: False}
+
+    max_range = max((i.engine.range for i in sims.keys()))
+    max_height = max((i.engine.hmax for i in sims.keys()))
     global SCALEX, SCALEY
-    SCALEX = WIDTH / sim.engine.range
-    SCALEY = HEIGHT / sim.engine.hmax
-    print(sim.engine.time_of_flight)
+    SCALEX = WIDTH / max_range
+    SCALEY = HEIGHT / max_height
+    print(sim1.engine.time_of_flight)
 
     init = time.perf_counter()
     while running:
@@ -115,9 +135,12 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        finished = sim.draw(WINDOW)
-        if finished:
+        for sim in sims:
+            sims[sim] = sim.draw(WINDOW)
+
+        if all(sims.values()):
             running = False
+
         pygame.display.update()
 
     finish = time.perf_counter()
