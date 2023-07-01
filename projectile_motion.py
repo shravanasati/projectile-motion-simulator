@@ -13,7 +13,7 @@ class GroundToGround:
         initial_velocity: float,
         angle_of_projection: float,
         horizontal_acceleration: float,
-        vertical_acceleration: float = -Constant.g.value
+        vertical_acceleration: float = -Constant.g.value,
     ) -> None:
         """
         Angle of projection must be in degrees.
@@ -31,7 +31,7 @@ class GroundToGround:
 
     @property
     def time_of_flight(self):
-        return (2 * self.uy) / Constant.g.value
+        return (2 * self.uy) / abs(self.ay)
 
     @property
     def range(self) -> float:
@@ -41,12 +41,22 @@ class GroundToGround:
 
     @property
     def hmax(self) -> float:
-        return (self.uy**2) / (2 * Constant.g.value)
+        return (self.uy**2) / (2 * abs(self.ay))
 
     def coordinates(self, t: float):
         x = (self.ux * t) + (0.5 * self.ax * (t**2))
         y = (self.uy * t) + (0.5 * self.ay * (t**2))
         return x, y
+
+    def velocity(self, coordinate: tuple[int, int]):
+        """
+        Returns the velocity of the object at the given coordinate.
+        """
+        x, y = coordinate
+        vx_squared = ((self.ux**2) + (2 * self.ax * x))
+        vy_squared = ((self.uy**2) + (2 * self.ay * y))
+
+        return math.sqrt(vx_squared + vy_squared)
 
     def trajectory(self, timestep: float) -> list[tuple[int, int]]:
         """

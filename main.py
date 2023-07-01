@@ -1,5 +1,4 @@
 from enum import Enum
-import time
 from projectile_motion import GroundToGround
 import pygame
 
@@ -10,6 +9,7 @@ class Color(Enum):
     RED = (188, 39, 50)
     YELLOW = (255, 255, 0)
     BLUE = (100, 149, 237)
+    GREY = (169, 169, 169)
 
 
 pygame.init()
@@ -33,6 +33,7 @@ class Simulator:
         vertical_acceleration: float,
         show_pos: bool = False,
         show_info: bool = False,
+        color: Color = Color.RED
     ) -> None:
         self.engine = GroundToGround(
             initial_velocity,
@@ -42,6 +43,7 @@ class Simulator:
         )
         self.show_pos = show_pos
         self.show_info = show_info
+        self.ball_color = color.value
 
         self.pos = 0
         self.trajectory = self.engine.trajectory(1 / FRAMERATE)
@@ -70,11 +72,13 @@ class Simulator:
 
     def draw(self, window) -> bool:
         try:
-            coordinate = self.scale_coordinate(self.trajectory[self.pos])
+            actual_coordinate = self.trajectory[self.pos]
+            # scaled coordinate
+            coordinate = self.scale_coordinate(actual_coordinate)
             self.pos += 1
 
             # draw the ball
-            pygame.draw.circle(window, Color.RED.value, (coordinate), BALL_RADIUS)
+            pygame.draw.circle(window, self.ball_color, (coordinate), BALL_RADIUS)
 
             # draw tracing lines
             if len(self.trajectory[: self.pos]) > 2:
@@ -101,8 +105,15 @@ class Simulator:
             distance_text = FONT.render(
                 f"Distance: {(coordinate[0]/1000):.2f}km", True, Color.YELLOW.value
             )
+            velocity = self.engine.velocity(actual_coordinate)
+            vel_text = FONT.render(
+                f"Velocity: {round(velocity, 2)}m/s",
+                True,
+                Color.YELLOW.value,
+            )
             window.blit(height_text, (coordinate[0] - 10, coordinate[1] - 35))
             window.blit(distance_text, (coordinate[0] - 10, coordinate[1] - 20))
+            window.blit(vel_text, (coordinate[0] - 10, coordinate[1] - 50))
 
         except IndexError:
             return True
@@ -115,8 +126,8 @@ class Simulator:
 def main():
     running = True
     clock = pygame.time.Clock()
-    sim1 = Simulator(50, 60, -0.5, 12, show_pos=True)
-    sim2 = Simulator(70, 30, 0, 10, show_pos=True)
+    sim1 = Simulator(50, 45, 0, 1.626, show_pos=True, color=Color.GREY)  # moon
+    sim2 = Simulator(50, 45, -1.5, 9.8, show_pos=True, color=Color.BLUE)  # earth
     sims = {sim1: False, sim2: False}
 
     max_range = max((i.engine.range for i in sims.keys()))
@@ -124,9 +135,7 @@ def main():
     global SCALEX, SCALEY
     SCALEX = WIDTH / max_range
     SCALEY = HEIGHT / max_height
-    print(sim1.engine.time_of_flight)
 
-    init = time.perf_counter()
     while running:
         clock.tick(FRAMERATE)
         WINDOW.fill(Color.BLACK.value)
@@ -143,8 +152,6 @@ def main():
 
         pygame.display.update()
 
-    finish = time.perf_counter()
-    print(finish - init)
     pygame.quit()
 
 
