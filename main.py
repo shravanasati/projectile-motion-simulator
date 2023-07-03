@@ -33,7 +33,7 @@ class Simulator:
         vertical_acceleration: float,
         show_pos: bool = False,
         show_info: bool = False,
-        color: Color = Color.RED
+        ball_color: Color = Color.RED,
     ) -> None:
         self.engine = GroundToGround(
             initial_velocity,
@@ -43,10 +43,13 @@ class Simulator:
         )
         self.show_pos = show_pos
         self.show_info = show_info
-        self.ball_color = color.value
+        self.ball_color = ball_color.value
 
         self.pos = 0
         self.trajectory = self.engine.trajectory(1 / FRAMERATE)
+
+        self.xmax = max(i[0] for i in self.trajectory)
+        self.ymax = max(i[1] for i in self.trajectory)
 
     def show_info_text(self, window):
         time_text = FONT.render(
@@ -119,19 +122,15 @@ class Simulator:
             return True
 
 
-# todo fix bug when range is not equal to max distance covered when negative acceleration
-# is used
-
-
 def main():
     running = True
     clock = pygame.time.Clock()
-    sim1 = Simulator(50, 45, 0, 1.626, show_pos=True, color=Color.GREY)  # moon
-    sim2 = Simulator(50, 45, -1.5, 9.8, show_pos=True, color=Color.BLUE)  # earth
+    sim1 = Simulator(500, 60, -25, 10, show_pos=True, ball_color=Color.RED)  # moon
+    sim2 = Simulator(50, 45, -6, 9.8, show_pos=True, ball_color=Color.BLUE)  # earth
     sims = {sim1: False, sim2: False}
 
-    max_range = max((i.engine.range for i in sims.keys()))
-    max_height = max((i.engine.hmax for i in sims.keys()))
+    max_range = max((i.xmax for i in sims.keys()))
+    max_height = max((i.ymax for i in sims.keys()))
     global SCALEX, SCALEY
     SCALEX = WIDTH / max_range
     SCALEY = HEIGHT / max_height

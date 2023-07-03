@@ -5,6 +5,7 @@ import numpy as np
 
 class Constant(Enum):
     g = 9.8  # m/s^2
+    RE = 6.37e6  # radius of earth in meters
 
 
 class GroundToGround:
@@ -14,16 +15,17 @@ class GroundToGround:
         angle_of_projection: float,
         horizontal_acceleration: float,
         vertical_acceleration: float = -Constant.g.value,
+        planet_radius: float = Constant.RE
     ) -> None:
         """
         Angle of projection must be in degrees.
         The other two parameters are in m/s and m/s^2 resp.
         """
         # convert angle into radians
-        self.theta = angle_of_projection * math.pi / 180
+        self.angle = angle_of_projection * math.pi / 180
 
-        self.ux = initial_velocity * math.cos(self.theta)
-        self.uy = initial_velocity * math.sin(self.theta)
+        self.ux = initial_velocity * math.cos(self.angle)
+        self.uy = initial_velocity * math.sin(self.angle)
 
         # acceleration due to gravity
         self.ay = -abs(vertical_acceleration)
@@ -53,8 +55,8 @@ class GroundToGround:
         Returns the velocity of the object at the given coordinate.
         """
         x, y = coordinate
-        vx_squared = ((self.ux**2) + (2 * self.ax * x))
-        vy_squared = ((self.uy**2) + (2 * self.ay * y))
+        vx_squared = (self.ux**2) + (2 * self.ax * x)
+        vy_squared = (self.uy**2) + (2 * self.ay * y)
 
         return math.sqrt(vx_squared + vy_squared)
 
@@ -74,7 +76,7 @@ class GroundToGround:
 
 if __name__ == "__main__":
     g2g = GroundToGround(40, 3, 0)
-    print(g2g.theta)
+    print(g2g.angle)
     print(g2g.range)
     print(g2g.hmax)
     print(g2g.time_of_flight)
