@@ -16,6 +16,7 @@ pygame.init()
 
 WIDTH, HEIGHT = 1200, 650
 SCALEX = SCALEY = 1
+SCALET = 1  # 1 second irl is SCALET seconds in the simulation
 FRAMERATE = 60
 BALL_RADIUS = 20
 
@@ -125,8 +126,8 @@ class Simulator:
 def main():
     running = True
     clock = pygame.time.Clock()
-    sim1 = Simulator(500, 60, -25, 10, show_pos=True, ball_color=Color.RED)  # moon
-    sim2 = Simulator(50, 45, -6, 9.8, show_pos=True, ball_color=Color.BLUE)  # earth
+    sim1 = Simulator(50, 30, -3, 10, show_pos=True, ball_color=Color.RED)  # moon
+    sim2 = Simulator(20, 60, 1.2, 9.8, show_pos=True, ball_color=Color.BLUE)  # earth
     sims = {sim1: False, sim2: False}
 
     max_range = max((i.xmax for i in sims.keys()))
@@ -136,7 +137,7 @@ def main():
     SCALEY = HEIGHT / max_height
 
     while running:
-        clock.tick(FRAMERATE)
+        clock.tick(FRAMERATE / SCALET)
         WINDOW.fill(Color.BLACK.value)
 
         for event in pygame.event.get():
